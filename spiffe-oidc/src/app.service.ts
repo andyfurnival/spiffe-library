@@ -1,13 +1,13 @@
 import { Injectable, Logger } from "@nestjs/common";
 import * as process from "process";
 import { decode } from "jsonwebtoken";
-import { EntryServer } from "@flutterint/ts-spiffe/build/src/admin/EntryServer";
-import { AdminSpireClient, SpiffeJwtPayload } from "@flutterint/ts-spiffe/build/src/admin";
-import { AdminConfig } from "@flutterint/ts-spiffe/build/src/config";
-import { IdentitySpireClient } from "@flutterint/ts-spiffe/build/src/delegated_identity/IdentitySpireClient";
-import { JwtSvid } from "@flutterint/ts-spiffe/build/src";
+import { EntryServer } from "ts-spiffe/build/src/admin/EntryServer";
+import { AdminSpireClient, SpiffeJwtPayload } from "ts-spiffe/build/src/admin";
+import { AdminConfig } from "ts-spiffe/build/src/config";
+import { IdentitySpireClient } from "ts-spiffe/build/src/delegated_identity/IdentitySpireClient";
+import { JwtSvid } from "ts-spiffe/build/src";
 import { SpireConfigService } from "./config/AdminConfigService";
-import { WorkloadSpireClient } from "@flutterint/ts-spiffe/build/src/workloadapi/WorkloadSpireClient";
+import { WorkloadSpireClient } from "ts-spiffe/build/src/workloadapi/WorkloadSpireClient";
 
 @Injectable()
 export class AppService {

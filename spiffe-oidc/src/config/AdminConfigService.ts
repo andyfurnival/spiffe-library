@@ -1,7 +1,7 @@
 import { ConfigService } from "@nestjs/config";
-import { AdminConfig } from "@flutterint/ts-spiffe/build/src/config/AdminConfig";
+import { AdminConfig } from "ts-spiffe/build/src/config";
 import { Injectable } from "@nestjs/common";
-import { WorkloadConfig } from "@flutterint/ts-spiffe/build/src";
+import { WorkloadConfig } from "ts-spiffe/build/src";
 
 @Injectable()
 export class SpireConfigService {

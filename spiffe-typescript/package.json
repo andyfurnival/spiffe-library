@@ -1,8 +1,10 @@
 {
-  "name": "@flutterint/ts-spiffe",
-  "version": "1.0.0",
+  "name": "ts-spiffe",
+  "version": "1.0.2",
   "description": "typescript client for spiffe",
   "main": "index.js",
+  "files":  ["build"],
+  "repository": "https://github.com/andyfurnival/spiffe-library",
   "scripts": {
     "genproto": "./scripts/build-proto.sh",
     "test:unit": "jest unit -c=jest.config.js --no-cache",
