@@ -1,3 +1,7 @@
 **/build/*
 node_modules
 .idea
+src/proto
+cjs
+es
+dist
