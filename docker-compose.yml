@@ -1,0 +1,50 @@
+services:
+  spire-server:
+    pid: "host"
+    #privileged: true
+    #user: "1000:1000"
+    image: ghcr.io/spiffe/spire-server:1.8.0
+    volumes:
+      - ./spire/data/server:/run/spire/server/data
+      - ./spire/config/docker:/run/spire/server/conf
+      - ./spire/ca:/run/spire/server/conf/ca
+      - /tmp/spire-server-private:/run/spire/server/private:rw
+    command: ["-config", "/run/spire/server/conf/server.conf"]
+    ports:
+      - 8081:8081
+  spire-agent:
+    pid: "host"
+    privileged: true
+    #user: "1000:1000"
+    image: ghcr.io/spiffe/spire-agent:1.8.0 #
+    volumes:
+      - ./spire/data/agent:/run/spire/agent/data
+      - ./spire/config/docker:/run/spire/agent/conf
+      - ./spire/ca:/run/spire/agent/conf/ca
+      - /tmp/spire-agent-public:/run/spire/agent/public:rw
+      - /tmp/spire-agent-private:/run/spire/agent/private/:rw
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: [ "-config", "/run/spire/agent/conf/agent.conf", "-allowUnauthenticatedVerifiers" ]
+    ports:
+      - 8082:8081
+    depends_on: [spire-server]
+  oidc:
+    pid: "host"
+    privileged: true
+    user: "0:0"
+    image: fs/spiffe-oidc:latest
+    volumes:
+      - /tmp/spire-agent-public:/run/spire/public:rw
+      - /tmp/spire-agent-private:/run/spire/private:rw
+    environment:
+      - WORKLOAD_SPIRE_ENDPOINT=unix:///run/spire/public/workload_api.sock
+      - DELEGATED_ID_SPIRE_ENDPOINT=unix:///run/spire/private/admin_api.sock
+      - ADMIN_SPIRE_ENDPOINT=spire-server:8081
+      - ADMIN_SPIFFE_ID=spiffe://server.fs.com/workload/oidc-admin
+      - PARENT_SPIFFE_ID=spiffe://server.fs.com/workload/oidc-admin
+      - LOG_LEVEL=DEBUG
+#      - GRPC_VERBOSITY=debug
+#      - GRPC_TRACE=channel,subchannel,call_stream,all
+    ports:
+      - 3000:3000
+    depends_on: [spire-agent]

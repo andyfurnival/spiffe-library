@@ -1,17 +1,18 @@
 import { EventEmitter } from "events";
 import { JwtSvid } from "../svid";
 import { JwtBundle } from "../bundle";
-import { JWTBundlesRequest, JWTSVIDRequest, ValidateJWTSVIDRequest } from "../proto/spire/workload_pb";
+import { JWTBundlesRequest, JWTSVIDRequest, ValidateJWTSVIDRequest } from "../proto/public/workload";
 import { Middleware } from "./Middleware";
 import { WorkloadClient } from "./WorkloadClient";
 import { AuthenticationTokenMissingError } from "../exception/AuthenticationTokenMissingError";
 import { TokenExpiredError } from "../exception";
 import { WorkloadConfig } from "../config";
+import { Logger } from '../internal/Logger';
 
 export class JwtSource {
     private svid: JwtSvid[] = [];
     private bundle: JwtBundle[] = [];
-
+  private logger = new Logger(JwtSource);
     private workloadAPIClient: WorkloadClient; // This will represent our gRPC client
     private watcher: EventEmitter;
     private reconnectInterval: number = 5000; // 5 seconds
@@ -44,18 +45,20 @@ export class JwtSource {
 
 
     async fetchJwtSvid(spiffeId: string, ...audiences: string[]) {
-        const request = new JWTSVIDRequest();
+        const request: JWTSVIDRequest = {
+          audience: audiences,
+          spiffeId: spiffeId,
+        };
         try {
-            request.setAudienceList(audiences);
-            request.setSpiffeId(spiffeId);
+
 
             const message =  await this.workloadAPIClient.fetchJWTSVID(request);
-                return {JWT: message.getSvidsList()};
+                return {JWT: message?.svids};
 
 
         } catch (error) {
             // Handle the error as needed
-            console.log(error)
+          this.logger.error(`${error}`)
             throw new Error("Could not Fetch JWT SVID")
         }
 
@@ -63,30 +66,31 @@ export class JwtSource {
 
 
    async *fetchJwtBundle(trustDomain: string) {
-       const request = new JWTBundlesRequest();
+       const request : JWTBundlesRequest = {};
        try {
            for await (const message of this.workloadAPIClient.fetchJWTBundles(request)) {
 
-               yield {Bundles: message.getBundlesMap()};
+               yield {Bundles: message?.bundles};
            }
        } catch (error) {
            // Handle the error as needed
-           console.log(error)
+         this.logger.error(`${error}`)
        }
    }
 
    async validateJWTSvid(svid : string, audience: string){
-       const request = new ValidateJWTSVIDRequest();
+       const request: ValidateJWTSVIDRequest = {
+         audience: audience,
+         svid: svid,
+       };
        try {
-           request.setSvid(svid);
-           request.setAudience(audience);
 
            const message =  await this.workloadAPIClient.validateJWTSVID(request);
            return {JWT: message};
 
 
        } catch (error ) {
-
+           this.logger.error(`${error}`)
            if (error instanceof AuthenticationTokenMissingError)
                throw error;
            else if (error instanceof TokenExpiredError)

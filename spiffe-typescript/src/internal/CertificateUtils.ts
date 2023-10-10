@@ -9,6 +9,7 @@ import {
 } from "@peculiar/x509";
 import * as forge from "node-forge";
 import { Certificate } from "pkijs";
+import { Logger } from './Logger';
 
 const crypto = new Crypto();
 x509.cryptoProvider.set(crypto);
@@ -76,9 +77,13 @@ export class CertificateUtils {
 
 
   public static async parseX509DER(x509svid: string) {
+
+    const logger = new Logger(CertificateUtils);
+
     try {
       const certificates: Certificate[] = [];
       const binaryData = Buffer.from(x509svid, "base64");
+
 
       const asn = binaryData.toString("hex");
       const parts = asn.split("308202");
@@ -93,7 +98,7 @@ export class CertificateUtils {
       }
       return certificates;
     } catch (error) {
-      console.log("Failed to parse ASN.1 DER encoded X509. " + error);
+      logger.error(`Failed to parse ASN.1 DER encoded X509.  ${error}`);
       return undefined;
     }
   }
@@ -101,13 +106,16 @@ export class CertificateUtils {
 
   public static async createRootCA(spiffeId: string) {
 
-    const keyPair = await crypto.subtle.generateKey(
-      {
+    const alg = {
         name: "RSASSA-PKCS1-v1_5",
         modulusLength: 2048,
         publicExponent: new Uint8Array([0x01, 0x00, 0x01]), // 65537
         hash: { name: "SHA-256" }
-      },
+      }
+
+    const keyPair = await crypto.subtle.generateKey(
+      alg
+      ,
       true,
       ["sign", "verify"]
     );
@@ -116,7 +124,7 @@ export class CertificateUtils {
       keys: keyPair,
       notAfter: this.getCANotAfter(new Date()),
       notBefore: this.getCertNotBefore(),
-      signingAlgorithm: undefined,
+      signingAlgorithm: alg,
       serialNumber: "01",
       name: new Name("O=Spiffe RootCA"),
       extensions: [

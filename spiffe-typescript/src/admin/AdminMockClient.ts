@@ -5,9 +5,9 @@ import {
   BatchUpdateEntryRequest,
   BatchUpdateEntryResponse,
   GetEntryRequest
-} from "../proto/spire/api/server/entry_pb";
-import { Entry } from "../proto/spire/api/types/entry_pb";
-import { X509SVID } from "../proto/spire/workload_pb";
+} from "../proto/private/spire/api/server/entry";
+import { Entry } from "../proto/private/spire/api/types/entry";
+import { X509SVID } from "../proto/public/workload";
 
 export class AdminMockClient implements AdminClient {
   setX509(x509Svid: X509SVID | undefined): void {
@@ -15,7 +15,7 @@ export class AdminMockClient implements AdminClient {
   }
   batchCreateEntry(request: BatchCreateEntryRequest): Promise<BatchCreateEntryResponse> {
     return new Promise((resolve, _reject) => {
-      const response = new BatchCreateEntryResponse();
+      const response : BatchCreateEntryResponse = { results: [] };
 
       resolve(response);
     });
@@ -23,7 +23,7 @@ export class AdminMockClient implements AdminClient {
 
   batchUpdateEntry(request: BatchUpdateEntryRequest): Promise<BatchUpdateEntryResponse> {
     return new Promise((resolve, _reject) => {
-      const response = new BatchUpdateEntryResponse();
+      const response : BatchUpdateEntryResponse = { results: [] }
 
       resolve(response);
     });
@@ -31,7 +31,21 @@ export class AdminMockClient implements AdminClient {
 
   getEntry(request: GetEntryRequest): Promise<Entry> {
     return new Promise((resolve, _reject) => {
-      const response = new Entry();
+      const response : Entry = {
+        admin: false,
+        createdAt: BigInt(0),
+        dnsNames: [],
+        downstream: false,
+        expiresAt: BigInt(0),
+        federatesWith: [],
+        hint: "",
+        id: "",
+        jwtSvidTtl: 0,
+        revisionNumber: BigInt(0),
+        selectors: [],
+        storeSvid: false,
+        x509SvidTtl: 0
+      }
 
       resolve(response);
     });

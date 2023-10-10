@@ -1,0 +1,10 @@
+.idea
+scripts
+.editorconfig
+.eslintrc.json
+.eslintignore
+SpireConfig
+node_modules
+.prettierrc.js
+jest.config.js
+*.spec.js

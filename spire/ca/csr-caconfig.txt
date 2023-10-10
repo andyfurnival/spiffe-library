@@ -1,0 +1,42 @@
+[ req ]
+default_md = sha256
+prompt = no
+req_extensions = req_ext
+distinguished_name = req_distinguished_name
+[ req_distinguished_name ]
+commonName = Agent
+countryName = GB
+organizationName = SPIRE
+[ req_ext ]
+subjectKeyIdentifier = hash
+keyUsage=critical,digitalSignature,keyEncipherment,keyAgreement
+extendedKeyUsage=critical,serverAuth,clientAuth
+basicConstraints=critical,CA:false
+
+[ ca ]
+default_ca      = ca_default
+
+[ ca_default ]
+dir             = ./
+certs           = $dir
+crl_dir         = $dir/crl
+database        = $dir/ca.db.index
+serial          = $dir/ca.db.serial
+RANDFILE        = $dir/ca.db.rand
+new_certs_dir   = $dir
+certificate     = $dir/server.fs.com.crt
+private_key     = $dir/server.fs.com.key
+default_days    = 365
+default_crl_days = 30
+default_md      = md5
+preserve        = no
+policy          = generic_policy
+
+[ generic_policy ]
+countryName = optional
+stateOrProvinceName = optional
+localityName = optional
+organizationName = optional
+organizationalUnitName = optional
+commonName = supplied
+emailAddress = optional

@@ -1,3 +1,4 @@
 export * from "./JWTSource"
 export * from "./X509Source"
-export * from "../config/WorkloadConfig"
+export * from "./WorkloadSpireClient"
+export * from "./WorkloadClient"

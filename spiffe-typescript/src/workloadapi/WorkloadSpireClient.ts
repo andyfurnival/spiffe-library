@@ -9,14 +9,15 @@ import {
   X509BundlesResponse,
   X509SVIDRequest,
   X509SVIDResponse
-} from "../proto/spire/workload_pb";
+} from "../proto/public/workload";
 import { WorkloadClient } from "./WorkloadClient";
-import { SpiffeWorkloadAPIClient } from "../proto/spire/workload_grpc_pb";
+import { SpiffeWorkloadAPIClient } from "../proto/public/workload.grpc-client";
 import * as grpc from "@grpc/grpc-js";
 import { ChannelCredentials } from "@grpc/grpc-js";
 import { WorkloadConfig } from "../config";
 import { TokenExpiredError } from "../exception";
 import { AuthenticationTokenMissingError } from "../exception/AuthenticationTokenMissingError";
+
 
 export class WorkloadSpireClient implements WorkloadClient {
     constructor(config: WorkloadConfig) {
@@ -38,41 +39,50 @@ export class WorkloadSpireClient implements WorkloadClient {
             yield response;
         }
     }
-    async fetchJWTSVID(request: JWTSVIDRequest): Promise<JWTSVIDResponse> {
+    async fetchJWTSVID(request: JWTSVIDRequest): Promise<JWTSVIDResponse | undefined> {
         return new Promise((resolve, reject) => {
-            return this.client.fetchJWTSVID(request, this.getMetaData(), (error, response) => {
+            return this.client.fetchJWTSVID(
+              request,
+              this.getMetaData(),
+              (error, response) => {
                 if (error) {
-                    reject(new Error("An error occurred: " + error));
+                  reject(new Error('An error occurred: ' + error));
                 } else {
-                    resolve(response);
+                  resolve(response);
                 }
-            });
+              }
+            );
         });
     }
     async *fetchJWTBundles(request: JWTBundlesRequest): AsyncIterable<JWTBundlesResponse> {
-        for await (const response of this.client.fetchJWTBundles(request, this.getMetaData(), this.getMetaData())) {
+        for await (const response of this.client.fetchJWTBundles(request, this.getMetaData())) {
             yield response;
         }
     }
-    async validateJWTSVID(request: ValidateJWTSVIDRequest): Promise<ValidateJWTSVIDResponse> {
+    async validateJWTSVID(request: ValidateJWTSVIDRequest): Promise<ValidateJWTSVIDResponse|undefined> {
         return new Promise((resolve, reject) => {
-            return this.client.validateJWTSVID(request, this.getMetaData(),  (error, response) => {
+            return this.client.validateJWTSVID(
+              request,
+              this.getMetaData(),
+              (error, response) => {
                 if (error) {
-                    switch(error.message){
-                        case "3 INVALID_ARGUMENT: token has expired":
-                            reject(new TokenExpiredError(error));
-                            break
-                        case "3 INVALID_ARGUMENT: security header missing from request":
-                            reject(new AuthenticationTokenMissingError(error));
-                            break;
-                        default:
-                            reject(new Error(error));
-                    }
-
+                  switch (error.message) {
+                    case '3 INVALID_ARGUMENT: token has expired':
+                      reject(new TokenExpiredError(error.message));
+                      break;
+                    case '3 INVALID_ARGUMENT: security header missing from request':
+                      reject(
+                        new AuthenticationTokenMissingError(error.message)
+                      );
+                      break;
+                    default:
+                      reject(new Error(error.message));
+                  }
                 } else {
-                    resolve(response);
+                  resolve(response);
                 }
-            });
+              }
+            );
         });
     }
 

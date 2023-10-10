@@ -1,8 +1,8 @@
 import { IdentityClient } from "./IdentityClient";
-import { FetchJWTSVIDsRequest, FetchJWTSVIDsResponse } from "../proto/spire/api/agent/delegatedidentity_pb";
+import { FetchJWTSVIDsRequest, FetchJWTSVIDsResponse } from "../proto/private/spire/api/agent/delegatedidentity";
 import { WorkloadConfig } from "../config";
 import { ChannelCredentials } from "@grpc/grpc-js";
-import { DelegatedIdentityClient } from "../proto/spire/api/agent/delegatedidentity_grpc_pb";
+import { DelegatedIdentityClient } from "../proto/private/spire/api/agent/delegatedidentity.grpc-client";
 
 export class IdentitySpireClient implements IdentityClient{
 
@@ -14,21 +14,24 @@ export class IdentitySpireClient implements IdentityClient{
   private config: WorkloadConfig;
   private client: DelegatedIdentityClient;
 
-  async fetchJWTSVIDsRequest(request: FetchJWTSVIDsRequest): Promise<FetchJWTSVIDsResponse> {
+  async fetchJWTSVIDsRequest(request: FetchJWTSVIDsRequest): Promise<FetchJWTSVIDsResponse|undefined> {
     return new Promise((resolve, reject) => {
-      return this.client.fetchJWTSVIDs(request,  (error, response) => {
-        if (error) {
-          reject(new Error("An error occurred: " + error));
-        } else {
-          resolve(response);
+      return this.client.fetchJWTSVIDs(
+        request,
+        (error, response) => {
+          if (error) {
+            reject(new Error('An error occurred: ' + error));
+          } else {
+            resolve(response);
+          }
         }
-      });
+      );
     });
   }
 
   private getGrpcClient() {
     const address = ((this.config?.spireEndpoint) !== "") ? this.config?.spireEndpoint : "http://localhost:8080";
-    return new DelegatedIdentityClient(address,ChannelCredentials.createInsecure() )
+    return new DelegatedIdentityClient(address, ChannelCredentials.createInsecure(), undefined )
   }
 
 

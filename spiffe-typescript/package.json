@@ -1,22 +1,41 @@
 {
   "name": "ts-spiffe",
-  "version": "1.0.2",
+  "version": "1.0.7-beta-11",
   "description": "typescript client for spiffe",
-  "main": "index.js",
-  "files":  ["build"],
-  "repository": "https://github.com/andyfurnival/spiffe-library",
+  "main": "cjs/index.js",
+  "module": "es/indes.js",
+  "types": "cjs/index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/andyfurnival/spiffe-library.git"
+  },
+  "private": false,
+  "files": [
+    "cjs/",
+    "es/",
+    "src/",
+    "src/proto",
+    "package.json",
+    "package-lock.json",
+    "README.md"
+  ],
   "scripts": {
     "genproto": "./scripts/build-proto.sh",
     "test:unit": "jest unit -c=jest.config.js --no-cache",
     "test:integration": "jest int -c=jest.config.js --no-cache",
     "test": "jest -c=jest.config.js --no-cache",
     "lint": "gts lint",
-    "clean": "gts clean",
-    "compile": "tsc",
+    "clean": "gts clean && rimraf build es cjs dist ./src/proto",
+    "compile": "npm run build",
+    "build": "npm run genproto && npm run build:ts && npm run build:cjs",
+    "build:ts": "rimraf dist  && tsc --outDir dist && cp -r ./src/proto ./dist",
+    "build:cjs": "rimraf cjs && tsc --module commonjs --outDir cjs && cp -r ./src/proto ./cjs",
+    "build:es": "rimraf es && tsc --module ES2015 --outDir es && cp -r ./src/proto ./es",
     "fix": "gts fix",
     "prepare": "npm run compile",
     "pretest": "npm run compile",
-    "posttest": "npm run lint"
+    "posttest": "npm run lint",
+    "publish:push": "npm publish"
   },
   "keywords": [
     "spiffe",
@@ -26,10 +45,11 @@
   "author": "a furnival",
   "license": "SEE LICENSE IN <filename>",
   "dependencies": {
-    "@grpc/grpc-js": "^1.9.0",
+    "@grpc/grpc-js": "^1.9.5",
     "@peculiar/asn1-x509": "^2.3.6",
     "@peculiar/webcrypto": "^1.4.3",
     "@peculiar/x509": "^1.9.5",
+    "@protobuf-ts/plugin": "^2.9.1",
     "@qntm-code/utils": "^2.18.0",
     "@typescript-eslint/parser": "^6.5.0",
     "asn1js": "^3.0.5",
@@ -40,6 +60,7 @@
     "uuid": "^9.0.0"
   },
   "devDependencies": {
+    "@types/google-protobuf": "^3.15.7",
     "@types/jest": "^29.5.4",
     "@types/jsonwebtoken": "^9.0.2",
     "@types/jwk-to-pem": "^2.0.1",
@@ -47,8 +68,6 @@
     "@types/node-forge": "^1.3.5",
     "@types/uuid": "^9.0.3",
     "@typescript-eslint/eslint-plugin": "^6.2.1",
-    "grpc_tools_node_protoc_ts": "^5.3.3",
-    "grpc-tools": "^1.12.4",
     "gts": "^3.1.1",
     "ts-jest": "^29.1.1",
     "typescript": "~4.7.0"

@@ -30,6 +30,31 @@ The goal here is to provide a simple means to:
 ## What's it intended for
 This project is intended to be a library to abstract the complexity of working with Spiffe, so we can implement simple queries into any chosen framework, to authenticate and validate all callers into the workload protected by Spiffe
 
+#
+## Prerequisites
+### Protoc Gen (TypeScript)
+```bash
+npm i protoc-gen-ts
+```
+
+### GRPC Tools
+```bash
+npm install -g grpc-tools
+```
+
+### Protobuf
+#### MacOS
+```bash
+brew install protobuf
+```
+#### Linux
+```bash
+apt install -y protobuf-compiler
+```
+
+
+
+
 ## How to run
 clone the source code\
 Pull all the dependencies\

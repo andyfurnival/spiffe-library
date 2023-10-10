@@ -1,14 +1,14 @@
 import { X509Certificate } from "@peculiar/x509";
 import { SpiffeId } from "../spiffeid";
 import { CertificateUtils } from "../internal/CertificateUtils";
-import { X509SVIDResponse } from "../proto/spire/workload_pb";
-
+import { X509SVIDResponse } from "../proto/public/workload";
+import { Logger } from '../internal/Logger';
 
 export class X509Svid {
         private readonly certificate: X509Certificate | undefined;
         private privateKey: Uint8Array | undefined;
         private hint: string | undefined
-
+        private logger = new Logger(X509Svid)
 
         constructor(certificate?: X509Certificate, privateKey?: Uint8Array, hint?: string) {
             this.certificate = certificate;
@@ -27,15 +27,16 @@ export class X509Svid {
 
         public static async getX509Svid(response: X509SVIDResponse) {
 
-            for (const x509svid of response.getSvidsList()) {
+          const logger = new Logger(X509Svid)
+            for (const x509svid of response.svids) {
 
                 if (!x509svid) {
                     continue;
                 }
                 try {
-                    const certificate = x509svid.getX509Svid_asB64();
-                    const privateKey = x509svid.getX509SvidKey_asU8();
-                    const hint = x509svid.getHint()
+                    const certificate = Buffer.from(x509svid.x509Svid).toString("base64");
+                    const privateKey = x509svid.x509SvidKey;
+                    const hint = x509svid.hint
                     const x509 = await CertificateUtils.parseX509DER(certificate)
 
 
@@ -44,7 +45,7 @@ export class X509Svid {
                     }
                 }catch(error)
                 {
-                    console.log(error)
+                    logger.error(`${error}`)
                     throw new Error("Could not get certificate from X509SVIDResponse. " + error)
                 }
 

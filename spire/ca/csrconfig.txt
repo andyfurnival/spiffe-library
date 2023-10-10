@@ -1,0 +1,18 @@
+[ req ]
+default_md = sha256
+prompt = no
+req_extensions = req_ext
+x509_extensions = req_ca
+distinguished_name = req_distinguished_name
+[ req_distinguished_name ]
+commonName = Agent
+countryName = GB
+organizationName = SPIRE
+[ req_ext ]
+keyUsage=critical,digitalSignature,keyEncipherment,keyAgreement
+extendedKeyUsage=critical,serverAuth,clientAuth
+basicConstraints=critical,CA:false
+[ req_ca ]
+keyUsage=critical,digitalSignature,keyEncipherment,keyAgreement
+extendedKeyUsage=critical,serverAuth,clientAuth
+basicConstraints=critical,CA:false
