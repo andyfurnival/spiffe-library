@@ -1,5 +1,5 @@
 import {AdminClient} from './AdminClient';
-import {JwtSvid} from '../svid';
+import { JwtSvid, X509Svid } from "../svid";
 import {Entry} from '../proto/private/spire/api/types/entry';
 import {Selector} from '../proto/private/spire/api/types/selector';
 import {
@@ -183,7 +183,8 @@ export class EntryServer {
       const svids = message.svids;
       for (const svidsKey in svids) {
         if (svids[svidsKey].spiffeId == this.config.adminSpiffeId) {
-          this.adminClient.setX509(svids[svidsKey]);
+
+          this.adminClient.setX509(await X509Svid.getX509Svid(svids[svidsKey]));
           break;
         }
       }

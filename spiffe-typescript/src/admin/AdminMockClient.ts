@@ -7,10 +7,10 @@ import {
   GetEntryRequest
 } from "../proto/private/spire/api/server/entry";
 import { Entry } from "../proto/private/spire/api/types/entry";
-import { X509SVID } from "../proto/public/workload";
+import { X509Svid } from "../svid";
 
 export class AdminMockClient implements AdminClient {
-  setX509(x509Svid: X509SVID | undefined): void {
+  setX509(x509Svid: X509Svid | undefined): void {
       throw new Error("Method not implemented.");
   }
   batchCreateEntry(request: BatchCreateEntryRequest): Promise<BatchCreateEntryResponse> {

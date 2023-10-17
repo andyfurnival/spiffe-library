@@ -1,6 +1,6 @@
 {
   "name": "ts-spiffe",
-  "version": "1.0.7-beta-11",
+  "version": "1.0.7-beta-14",
   "description": "typescript client for spiffe",
   "main": "cjs/index.js",
   "module": "es/indes.js",

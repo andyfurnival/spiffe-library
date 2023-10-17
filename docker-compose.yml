@@ -1,8 +1,10 @@
+volumes:
+  spire-agent-public:
+  spire-server-public:
+  spire-server-private:
+  spire-agent-private:
 services:
   spire-server:
-    pid: "host"
-    #privileged: true
-    #user: "1000:1000"
     image: ghcr.io/spiffe/spire-server:1.8.0
     volumes:
       - ./spire/data/server:/run/spire/server/data
@@ -12,26 +14,30 @@ services:
     command: ["-config", "/run/spire/server/conf/server.conf"]
     ports:
       - 8081:8081
+      - 8090:8080
   spire-agent:
     pid: "host"
-    privileged: true
-    #user: "1000:1000"
-    image: ghcr.io/spiffe/spire-agent:1.8.0 #
+    image: ghcr.io/spiffe/spire-agent:1.8.0
+    #image: fs/spire-agent-af:latest
     volumes:
       - ./spire/data/agent:/run/spire/agent/data
       - ./spire/config/docker:/run/spire/agent/conf
       - ./spire/ca:/run/spire/agent/conf/ca
       - /tmp/spire-agent-public:/run/spire/agent/public:rw
-      - /tmp/spire-agent-private:/run/spire/agent/private/:rw
-      - /var/run/docker.sock:/var/run/docker.sock
+      - /tmp/spire-agent-private:/run/spire/agent/private:rw
+      - /var/run/docker.sock:/var/run/docker.sock:rw
     command: [ "-config", "/run/spire/agent/conf/agent.conf", "-allowUnauthenticatedVerifiers" ]
     ports:
       - 8082:8081
-    depends_on: [spire-server]
+      - 8091:8080
+    depends_on:
+      spire-server:
+        condition: service_started
+    labels:
+      spiffe_id: spiffe://server.fs.com/workload/public/envoy
   oidc:
     pid: "host"
-    privileged: true
-    user: "0:0"
+    user: "1000:1000"
     image: fs/spiffe-oidc:latest
     volumes:
       - /tmp/spire-agent-public:/run/spire/public:rw
@@ -43,8 +49,80 @@ services:
       - ADMIN_SPIFFE_ID=spiffe://server.fs.com/workload/oidc-admin
       - PARENT_SPIFFE_ID=spiffe://server.fs.com/workload/oidc-admin
       - LOG_LEVEL=DEBUG
-#      - GRPC_VERBOSITY=debug
-#      - GRPC_TRACE=channel,subchannel,call_stream,all
+      - GRPC_VERBOSITY=debug
+      - GRPC_TRACE=channel,subchannel,call_stream,all
     ports:
       - 3000:3000
-    depends_on: [spire-agent]
+    depends_on:
+      spire-agent:
+        condition: service_started
+    labels:
+      spiffe_id: spiffe://server.fs.com/workload/oidc-admin
+  workload-demo-service:
+    pid: "host"
+    image: fs/demo-service:latest
+    volumes:
+      - /tmp/spire-agent-public:/run/spire/public:rw
+      - /tmp/spire-agent-private:/run/spire/private:rw
+    environment:
+      - WORKLOAD_ENDPOINT=unix:///run/spire/public/workload_api.sock
+      - SPIFFE_ID=spiffe://server.fs.com/workload/demo-service
+      - LOG_LEVEL=DEBUG
+      - NODE_DEBUG=http
+#    ports:
+#      - 3010:3010
+    depends_on:
+      oidc:
+        condition: service_started
+    labels:
+      spiffe_id: spiffe://server.fs.com/workload/demo-service
+  workload-envoy:
+    pid: "host"
+    hostname: demo-service
+    image: envoyproxy/envoy:v1.27.1
+    environment:
+      - SPIFFE_ID=spiffe://server.fs.com/workload/demo-service
+    volumes:
+      - /tmp/spire-agent-public:/run/spire/public:rw
+      - ./spire/config/docker/envoy:/etc/envoy
+      - ./spire/envoy:/tmp/envoy:rw
+    ports:
+      - 3020:3020 #mtls port
+      - 9901:9901 #admin port
+    depends_on:
+      workload-demo-service:
+        condition: service_started
+      spire-agent:
+        condition: service_started
+    labels:
+      spiffe_id: spiffe://server.fs.com/workload/demo-service
+    command: ["-l", "debug", "--local-address-ip-version", "v4", "-c", "/etc/envoy/envoy.yaml", "--base-id", "2"]
+  workload-demo-public:
+    hostname: demo-public
+    pid: "host"
+    image: fs/workload-public:latest
+    volumes:
+      - /tmp/spire-agent-public:/run/spire/public:rw
+      - /tmp/spire-agent-private:/run/spire/private:rw
+    environment:
+      - WORKLOAD_ENDPOINT=unix:///run/spire/public/workload_api.sock
+      - SPIFFE_ID=spiffe://server.fs.com/workload/demo-public
+      - LOG_LEVEL=DEBUG
+      - NODE_DEBUG=http
+      - SERVICE_ENDPOINT=https://demo-service:3020
+    ports:
+      - 3001:3001
+    depends_on:
+      oidc:
+        condition: service_started
+    labels:
+      spiffe_id: spiffe://server.fs.com/workload/demo-public
+#  debium:
+#   # pid: "host"
+#    image: docker:latest
+#    volumes:
+#      - spire-agent-public:/run/spire/public:rw
+#      - spire-agent-private:/run/spire/private:rw
+#      - /var/run/docker.sock.raw:/var/run/docker.sock
+#    tty: true
+#    command: [sh]

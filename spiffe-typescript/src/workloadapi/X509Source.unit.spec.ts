@@ -9,7 +9,7 @@ it('should fetch X.509 SVID from Mock Spire', async () => {
       const stream = source.fetchX509Svid();
       for await (const svid of stream) {
           expect(svid).not.toBeUndefined();
-          const x509svid = await X509Svid.getX509Svid(svid.SVID)
+          const x509svid = await X509Svid.getX509SvidFromStream(svid.SVID)
           expect(x509svid).not.toBeUndefined();
           expect(x509svid?.getSpiffeId().getTrustDomain().toString()).toBe("server.fs.com")
           expect(x509svid?.getSpiffeId().toString()).toBe("spiffe://server.fs.com/workload")

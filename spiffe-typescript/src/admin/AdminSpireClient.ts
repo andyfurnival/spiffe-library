@@ -14,10 +14,11 @@ import { AdminConfig } from "../config";
 import { CertificateUtils } from "../internal/CertificateUtils";
 import { Certificate } from "pkijs";
 import { Logger } from '../internal/Logger';
+import { X509Svid } from "../svid";
 
 
 export class AdminSpireClient implements AdminClient {
-  private x509: X509SVID | undefined;
+  private x509: X509Svid | undefined;
   private config: AdminConfig;
   private logger = new Logger(AdminSpireClient);
   constructor(config: AdminConfig) {
@@ -72,7 +73,7 @@ export class AdminSpireClient implements AdminClient {
     });
   }
 
-  setX509(x509Svid: X509SVID): void {
+  setX509(x509Svid: X509Svid): void {
     this.x509 = x509Svid;
   }
 
@@ -105,34 +106,37 @@ export class AdminSpireClient implements AdminClient {
       });
     else {
 
-      const root = this.getCertificate(Buffer.from(this.x509?.bundle).toString("base64"));
-      const certChain = this.getCertificate(Buffer.from(this.x509?.x509Svid).toString("base64"));
 
-      const key = Buffer.from(this.x509?.x509SvidKey).toString("base64");
-      const privateKeyPEM = this.derToPem(key)
+      const rootPromise = this.x509?.getBundleAsPEM()
+      const leafPromise = this.x509?.getLeafAsPEM()
+      const intermediatePromise = this.x509?.getIntermediateAsPEM()
+      const keyPromise = this.x509?.getKeyAsPEM()
 
       return new Promise((resolve, _reject) => {
-        root.then((rootResult) => {
-          certChain.then((certResult) => {
-            if (rootResult === undefined) throw new Error("no root certificate");
-            if (certResult === undefined) throw new Error("no certificate");
-            const rootPEM = this.getPEM(rootResult[0]);
-            const leafPEM = this.getPEM(certResult[0]);
-            const intermediatePEM = this.getPEM(certResult[1]);
+        rootPromise.then((rootPEM) => {
+          leafPromise.then((leafPEM) => {
+            intermediatePromise.then((intermediatePEM) => {
+              keyPromise.then((privateKeyPEM) => {
+                if (rootPEM === undefined) throw new Error("no root certificate");
+                if (leafPEM === undefined) throw new Error("no certificate");
+                if (intermediatePEM === undefined) throw new Error("no certificate");
+                if (privateKeyPEM === undefined) throw new Error("no certificate");
 
-            this.logger.debug(rootPEM);
-            this.logger.debug(leafPEM);
-            this.logger.debug(intermediatePEM);
-            this.logger.debug(privateKeyPEM);
+                this.logger.debug(rootPEM);
+                this.logger.debug(leafPEM);
+                this.logger.debug(intermediatePEM);
+                this.logger.debug(privateKeyPEM);
 
-            const verifyOptions = {
-              checkServerIdentity(hostname: any, cert: any) {
+                const verifyOptions = {
+                  checkServerIdentity(hostname: any, cert: any) {
 
-                return undefined;
-              }
-            };
+                    return undefined;
+                  }
+                };
 
-            resolve(ChannelCredentials.createSsl(Buffer.from(rootPEM), Buffer.from(privateKeyPEM.toString()), Buffer.from(leafPEM + "\n" + intermediatePEM), verifyOptions));
+                resolve(ChannelCredentials.createSsl(Buffer.from(rootPEM), Buffer.from(privateKeyPEM.toString()), Buffer.from(leafPEM + "\n" + intermediatePEM), verifyOptions));
+              });
+            });
           });
         });
       });

@@ -47,7 +47,7 @@ describe('X509Source', () => {
     const source = new X509Source(new WorkloadSpireClient(config));
     for await (const svid of source.fetchX509Svid()) {
       expect(svid).not.toBeUndefined();
-      const x509svid = await X509Svid.getX509Svid(svid.SVID)
+      const x509svid = await X509Svid.getX509SvidFromStream(svid.SVID)
       expect(x509svid).not.toBeUndefined();
       expect(x509svid?.getSpiffeId().getTrustDomain().toString()).toBe("server.fs.com")
       expect(x509svid?.getSpiffeId().toString()).toBe("spiffe://server.fs.com/myworkload")

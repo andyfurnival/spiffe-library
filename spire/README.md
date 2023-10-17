@@ -25,20 +25,34 @@ Modify the csrconfig.txt to change any attributes for the CSR generation
 
 
 
-## Setup stuff
+## Setup stuff - Docker
+the Unix Domain Sockets have inconsistent permissions, the workload API looks to be 777, but the admin apis are not and may need to be modified to 777 once the containers are running
+```bash
+sudo chmod 777 /tmp/spire-agent-private/admin_api.sock
+sudo chmod 777 /tmp/spire-server-private/api.sock
+```
 
 ### List Entries / Spiffe IDs
 ```bash
 docker compose exec -u 501 -T spire-server bin/spire-server entry show -socketPath /run/spire/server/private/api.sock
 ```
-### Create Admin Spiffe ID (UNIX Attestor)
+
+### Create Admin Spiffe ID 
 ```bash
-docker compose exec -u 501 -T spire-server bin/spire-server entry create -spiffeID spiffe://server.fs.com/workload/admin -parentID spiffe://server.fs.com/spire/agent/x509pop/b53cef79ffc236b8015241cfd48401777c7185e7 -selector unix:uid:1000 -admin -dns localhost -dns spire-server -socketPath /run/spire/server/private/api.sock
+docker compose exec -u 501 -T spire-server bin/spire-server entry create -spiffeID spiffe://server.fs.com/workload/oidc-admin -parentID spiffe://server.fs.com/spire/agent/x509pop/b53cef79ffc236b8015241cfd48401777c7185e7 -selector docker:label:spiffe_id:spiffe://server.fs.com/workload/oidc-admin  -admin -dns localhost -dns spire-server -socketPath /run/spire/server/private/api.sock
 ```
-### Create Admin Spiffe ID (Docker Lable Attestor)
+
+### Create Demo Service Spiffe ID (for service to service) 
 ```bash
-docker compose exec -u 501 -T spire-server bin/spire-server entry create -spiffeID spiffe://server.fs.com/workload/oidc-admin -parentID spiffe://server.fs.com/spire/agent/x509pop/b53cef79ffc236b8015241cfd48401777c7185e7 -selector docker:label:com.docker.compose.service:oidc -selector unix:uid:1000 -admin -dns localhost -dns spire-server -socketPath /run/spire/server/private/api.sock
+docker compose exec -u 501 -T spire-server bin/spire-server entry create -spiffeID spiffe://server.fs.com/workload/demo-service -parentID spiffe://server.fs.com/spire/agent/x509pop/b53cef79ffc236b8015241cfd48401777c7185e7 -selector docker:label:spiffe_id:spiffe://server.fs.com/workload/demo-service -dns demo-service -socketPath /run/spire/server/private/api.sock
 ```
+### Create Demo Public Spiffe ID (for end users)
+```bash
+docker compose exec -u 501 -T spire-server bin/spire-server entry create -spiffeID spiffe://server.fs.com/workload/demo-public -parentID spiffe://server.fs.com/spire/agent/x509pop/b53cef79ffc236b8015241cfd48401777c7185e7 -selector docker:label:spiffe_id:spiffe://server.fs.com/workload/demo-public -dns demo-public -socketPath /run/spire/server/private/api.sock
+```
+
+
+Others
 ### Create Workload Spiffe ID
 ```bash
 docker compose exec -u 501 -T spire-server bin/spire-server entry create -spiffeID spiffe://server.fs.com/terminal -selector unix:uid:501 -parentID spiffe://server.fs.com/spire/agent/x509pop/b53cef79ffc236b8015241cfd48401777c7185e7 -selector unix:uid:1000 -socketPath /run/spire/server/private/api.sock
@@ -47,4 +61,19 @@ docker compose exec -u 501 -T spire-server bin/spire-server entry create -spiffe
 ### Fetch all x509 SVIDS
 ```bash
 docker compose exec -u 501 -T spire-agent bin/spire-agent api fetch x509  -socketPath /run/spire/agent/public/workload_api.sock -write /run/spire/agent/public/
+```
+
+## Setup stuff - Local
+
+### Create Admin Spiffe ID
+```bash
+ ./bin-macos/spire-server entry create -spiffeID spiffe://server.fs.com/workload/oidc-admin -parentID spiffe://server.fs.com/spire/agent/x509pop/b53cef79ffc236b8015241cfd48401777c7185e7 -selector unix:uid:501  -admin -dns localhost -dns spire-server -socketPath  /tmp/spire/server/private/api.sock
+```
+### Create Demo Service Spiffe ID (for service to service)
+```bash
+./bin-macos/spire-server entry create -spiffeID spiffe://server.fs.com/workload/demo-service -parentID spiffe://server.fs.com/spire/agent/x509pop/b53cef79ffc236b8015241cfd48401777c7185e7 -selector unix:uid:501 -dns demo-service -socketPath /tmp/spire/server/private/api.sock
+```
+### Create Demo Public Spiffe ID (for end users)
+```bash
+./bin-macos/spire-server entry create -spiffeID spiffe://server.fs.com/workload/demo-public -parentID spiffe://server.fs.com/spire/agent/x509pop/b53cef79ffc236b8015241cfd48401777c7185e7 -selector unix:uid:501 -dns demo-public -socketPath /tmp/spire/server/private/api.sock
 ```

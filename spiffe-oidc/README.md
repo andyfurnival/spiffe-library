@@ -30,29 +30,29 @@ $ npm run test:e2e
 # test coverage
 $ npm run test:cov
 ```
-#Setup
-Configure the .env file with details of your OKTA tenant.
-OIDC_ISSUER
-CLIENT_ID
-CLIENT_SECRET
+### Build the container
+```bash
+docker build -t fs/spiffe-oidc .
+```
 
-Create some users and assign them roles in OKTA
-in .env your OKTA roles should map to roles used across workloads using ROLE_ prefix
-e.g. a ROLE in OKRA called spiffe_admins should have an entry in .env called ROLE_SPIFFE_ADMIN and then map that to a local role name of your choosing
-ROLE_SPIFFE_ADMINS=admin
-ROLE_SPIFFE_READONLY=readonly
+### Setup
+Configure the .env file with details of your OKTA tenant.
+SPIFFE_ID=spiffe://server.fs.com/workload/demo-service
+WORKLOAD_ENDPOINT=unix:///tmp/spire-agent/public/api.sock
+WORKLOAD_RECONNECT_INTERVAL=1000
+
 
 Make sure you have Spire Server and Agent running
 Register this app as a workload in Spire with Admin rights
 e.g. 
 ```bash
-./bin/spire-server entry update -entryID "8559206a-8af6-409c-9991-7fce4e118399" -parentID "spiffe://server.fs.com/fs-agent" -selector "unix:uid:501" -dns "localost" -spiffeID "spiffe://server.fs.com/oidc-admin" -admin "true"
+./bin/spire-server entry create -parentID "spiffe://server.fs.com/spire/agent/x509pop/b53cef79ffc236b8015241cfd48401777c7185e7" -selector "docker:spiffe_id:spiffe://server.fs.com/workload/demo-service" -dns "workload-demo-service" -spiffeID "spiffe://server.fs.com/workload/demo-service" 
 ```
-set the ADMIN_SPIFFE_ID in .env to the registered SpiffeId
+
 ## Running
 
 Open browser to http://localhost:3000/login
-Use credentials
+Use credentials associated with the OKTA account
 
 OKTA Credentials
 demo@furnival.io
@@ -64,4 +64,4 @@ that JWTSVID token back to your browser.
 
 you can then use that token to call any Spiffe Service on the same trust domain that accepts a JWT SVID as authentication
 
-See Spiffe-Workload project as an example
+See spiffe-demo-workload-public project as an example
