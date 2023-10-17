@@ -29,7 +29,7 @@ A NestJS based service (workload) that integrates into an OKTA IdP for user auth
 A NestJS based service (workload) that authenticates against Spire using JWT SVID.  Integration into Spire is based on spiffe-typescript library
 
 ## spiffe-demo-service
-A NestJS based service (workload) that is designed to be accessed by other services using mTLS issused by Spire.  Integration into Spire is based on spiffe-typescript library
+A NestJS based service (workload) that is designed to be accessed by other services using mTLS issued by Spire.  Integration into Spire is based on spiffe-typescript library
 
 
 ## Notes
@@ -106,3 +106,14 @@ graph LR
     7-. "<div>Mints JWT/X509 SVID</div><div style='font-size: 70%'></div>" .->6
   end
 ```
+
+#### Glossary
+
+| Term | Meaning                             |
+|------|-------------------------------------|
+| UDS  | Unix Domain Socket                  |
+| TLS  | Transport Layer Security            |
+| mTLS | Mutual TLS                          |  
+| SVID | Spiffe Verifiable Identity Document | 
+| JWT  | JSON Web Token                      | 
+| X509 | Identity and Public Key             | 
