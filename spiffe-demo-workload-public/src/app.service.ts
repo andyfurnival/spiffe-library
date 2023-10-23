@@ -17,6 +17,20 @@ export class AppService  {
 
   private readonly logger = new Logger(AppService.name);
 
+  async identify(): Promise<any> {
+    try {
+      const svid = await this.requestx509Svid();
+      if(!svid){
+        return "No identity exists"
+      }
+      return svid.spiffeId;
+
+    } catch (error) {
+      return "No identity exists " 
+    }
+    
+  }
+
   async getAllGames(request: Request): Promise<any[]> {
     return await this.fetchGame( request)
 

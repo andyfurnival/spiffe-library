@@ -11,12 +11,19 @@ export class RolesGuard implements CanActivate {
     canActivate(
       context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {
+    try {
       const request = context.switchToHttp().getRequest();
       const role = Reflect.getMetadata('roles', context.getHandler()) || [];
       const token = request.headers.authorization?.replace('Bearer ', ''); // Assuming token is in the "Authorization" header
 
       if(process.env.DISABLE_SECURITY) return true
       return this.externalService.validateToken(token, role);
+      
+    } catch (error) {
+      
+      return false;
     }
+     
+  }
 }
 

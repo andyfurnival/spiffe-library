@@ -5,7 +5,7 @@ volumes:
   spire-agent-private:
 services:
   spire-server:
-    image: ghcr.io/spiffe/spire-server:1.8.0
+    image: ghcr.io/spiffe/spire-server:1.8.2
     volumes:
       - ./spire/data/server:/run/spire/server/data
       - ./spire/config/docker:/run/spire/server/conf
@@ -17,8 +17,7 @@ services:
       - 8090:8080
   spire-agent:
     pid: "host"
-    image: ghcr.io/spiffe/spire-agent:1.8.0
-    #image: fs/spire-agent-af:latest
+    image: ghcr.io/spiffe/spire-agent:1.8.2
     volumes:
       - ./spire/data/agent:/run/spire/agent/data
       - ./spire/config/docker:/run/spire/agent/conf
@@ -34,7 +33,7 @@ services:
       spire-server:
         condition: service_started
     labels:
-      spiffe_id: spiffe://server.fs.com/workload/public/envoy
+      spiffe_id: spiffe://server.fs.com/workload/demo-public
   oidc:
     pid: "host"
     user: "1000:1000"
@@ -49,8 +48,6 @@ services:
       - ADMIN_SPIFFE_ID=spiffe://server.fs.com/workload/oidc-admin
       - PARENT_SPIFFE_ID=spiffe://server.fs.com/workload/oidc-admin
       - LOG_LEVEL=DEBUG
-      - GRPC_VERBOSITY=debug
-      - GRPC_TRACE=channel,subchannel,call_stream,all
     ports:
       - 3000:3000
     depends_on:
@@ -69,8 +66,7 @@ services:
       - SPIFFE_ID=spiffe://server.fs.com/workload/demo-service
       - LOG_LEVEL=DEBUG
       - NODE_DEBUG=http
-#    ports:
-#      - 3010:3010
+
     depends_on:
       oidc:
         condition: service_started
@@ -117,12 +113,3 @@ services:
         condition: service_started
     labels:
       spiffe_id: spiffe://server.fs.com/workload/demo-public
-#  debium:
-#   # pid: "host"
-#    image: docker:latest
-#    volumes:
-#      - spire-agent-public:/run/spire/public:rw
-#      - spire-agent-private:/run/spire/private:rw
-#      - /var/run/docker.sock.raw:/var/run/docker.sock
-#    tty: true
-#    command: [sh]

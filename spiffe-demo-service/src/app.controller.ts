@@ -1,4 +1,16 @@
-import { Body, Controller, Get, Param, Post, Req, UseGuards, Logger, Header } from "@nestjs/common";
+import {
+      Body,
+      Controller,
+      Get,
+      Param,
+      Post,
+      Req,
+      UseGuards,
+      Logger,
+      Header,
+      HttpStatus,
+      HttpCode
+} from "@nestjs/common";
 
 import { AppService } from "./app.service";
 
@@ -13,6 +25,13 @@ import { RolesGuard } from "./roles-guard.service";
             }
 
             private readonly logger = new Logger(AppController.name);
+
+            @Get('/identify')
+            @Header('Cache-Control', 'no-cache')
+            @HttpCode(HttpStatus.OK)
+            async identify( ): Promise<string> {
+                  return await this.appService.identify();
+            }
 
             @Get()
             @Header('Cache-Control', 'no-cache')

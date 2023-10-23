@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, UnauthorizedException } from "@nestjs/common";
 import { JwtSource, JwtSvid } from "ts-spiffe";
 import { AuthConfig } from "./config/auth.config";
 import { WorkloadSpireClient } from "ts-spiffe";
@@ -8,12 +8,12 @@ export class SpiffeAuthService {
   constructor( private readonly config: AuthConfig) { }
   async validateToken(token: string, roles: string): Promise<any> {
     if(token === undefined){
-      throw new Error("No Token")
+      throw new UnauthorizedException("No Token")
     }
 
     const svid = new JwtSvid(token);
     if(svid.isExpired()){
-      throw new Error("Token has expired")
+      throw new UnauthorizedException("Token has expired")
     }
 
     const jwtSource = new JwtSource(new WorkloadSpireClient(this.config.workloadConfig),this.config.workloadConfig)

@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Header, Param, Post, Req, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Header, Param, Post, Req, UseGuards, HttpCode, HttpStatus } from "@nestjs/common";
 import { AppService } from "./app.service";
 import { Roles } from "./roles.decorator";
 import { RolesGuard } from "./roles-guard.service";
@@ -12,9 +12,24 @@ import { RolesGuard } from "./roles-guard.service";
 
       }
 
-      @Get()
+      @Get('/identify')
+      @Header('Cache-Control', 'no-cache')
+      @HttpCode(HttpStatus.OK)
+      async identify( ): Promise<string> {
+        return await this.appService.identify();
+      }
+
+      @Get('/whoami')
       @Header('Cache-Control', 'no-cache')
       @Roles('public')
+      @UseGuards(RolesGuard)
+      async whoami( @Req() request): Promise<any> {
+        return request.JWT.sub;
+      }
+
+      @Get()
+      @Header('Cache-Control', 'no-cache')
+      @Roles('readonly')
       @UseGuards(RolesGuard)
       async getAllGames( @Req() request): Promise<any[]> {
         return await this.appService.getAllGames(request);
@@ -22,7 +37,7 @@ import { RolesGuard } from "./roles-guard.service";
 
       @Get(':id')
       @Header('Cache-Control', 'no-cache')
-      @Roles('public')
+      @Roles('readonly')
       @UseGuards(RolesGuard)
       async getGame(@Param() id, @Req() request): Promise<any> {
         return await this.appService.getGame(id, request);

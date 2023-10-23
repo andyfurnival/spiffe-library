@@ -32,6 +32,11 @@ sudo chmod 777 /tmp/spire-agent-private/admin_api.sock
 sudo chmod 777 /tmp/spire-server-private/api.sock
 ```
 
+### List Agents / Spiffe IDs
+```bash
+docker compose exec -u 501 -T spire-server bin/spire-server agent list -socketPath /run/spire/server/private/api.sock
+```
+
 ### List Entries / Spiffe IDs
 ```bash
 docker compose exec -u 501 -T spire-server bin/spire-server entry show -socketPath /run/spire/server/private/api.sock
@@ -53,14 +58,15 @@ docker compose exec -u 501 -T spire-server bin/spire-server entry create -spiffe
 
 
 Others
-### Create Workload Spiffe ID
+### Create Terminal Identity
 ```bash
-docker compose exec -u 501 -T spire-server bin/spire-server entry create -spiffeID spiffe://server.fs.com/terminal -selector unix:uid:501 -parentID spiffe://server.fs.com/spire/agent/x509pop/b53cef79ffc236b8015241cfd48401777c7185e7 -selector unix:uid:1000 -socketPath /run/spire/server/private/api.sock
+docker compose exec -u 501 -T spire-server bin/spire-server entry create -spiffeID spiffe://server.fs.com/terminal -selector unix:uid:501 -parentID spiffe://server.fs.com/spire/agent/x509pop/b53cef79ffc236b8015241cfd48401777c7185e7 -socketPath /run/spire/server/private/api.sock
 ```
+
 
 ### Fetch all x509 SVIDS
 ```bash
-docker compose exec -u 501 -T spire-agent bin/spire-agent api fetch x509  -socketPath /run/spire/agent/public/workload_api.sock -write /run/spire/agent/public/
+docker compose exec -u 501 -T spire-agent bin/spire-agent api fetch x509  -socketPath /run/spire/agent/public/workload_api.sock -write /run/spire/agent/conf/ca
 ```
 
 ## Setup stuff - Local
